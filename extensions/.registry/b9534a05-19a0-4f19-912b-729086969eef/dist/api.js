@@ -1,3 +1,5 @@
+import { request, sleep, log } from 'directus:api';
+
 var util;
 (function (util) {
     util.assertEqual = (val) => val;
@@ -3998,7 +4000,7 @@ ZodReadonly.create = (type, params) => {
         ...processCreateParams(params),
     });
 };
-function custom(check, params = {}, 
+function custom$1(check, params = {}, 
 /**
  * @deprecated
  *
@@ -4072,7 +4074,7 @@ const instanceOfType = (
 // const instanceOfType = <T extends new (...args: any[]) => any>(
 cls, params = {
     message: `Input not instance of ${cls.name}`,
-}) => custom((data) => data instanceof cls, params);
+}) => custom$1((data) => data instanceof cls, params);
 const stringType = ZodString.create;
 const numberType = ZodNumber.create;
 const nanType = ZodNaN.create;
@@ -4182,7 +4184,7 @@ var z = /*#__PURE__*/Object.freeze({
     ZodBranded: ZodBranded,
     ZodPipeline: ZodPipeline,
     ZodReadonly: ZodReadonly,
-    custom: custom,
+    custom: custom$1,
     Schema: ZodType,
     ZodSchema: ZodType,
     late: late,
@@ -4335,25 +4337,353 @@ z.object({
   devDependencies: z.record(z.string()).optional(),
   [EXTENSION_PKG_KEY]: ExtensionOptions
 });
-function defineEndpoint(config) {
+function defineOperationApi(config) {
   return config;
 }
 
-var index = defineEndpoint((router) => {
-  router.get("/*", async (req, res) => {
-    try {
-      const response = await fetch(`https://pokeapi.co/api/v2/${req.url}`);
-      if (response.ok) {
-        res.json(await response.json());
-      } else {
-        res.status(response.status);
-        res.send(response.statusText);
-      }
-    } catch (error) {
-      res.status(500);
-      res.send(error.message);
+// src/create-error.ts
+var createError = (code, message, status = 500) => {
+  return class extends Error {
+    name = "DirectusError";
+    extensions;
+    code = code.toUpperCase();
+    status = status;
+    constructor(extensions, options) {
+      const msg = typeof message === "string" ? message : message(extensions);
+      super(msg, options);
+      this.extensions = extensions;
     }
-  });
+    toString() {
+      return `${this.name} [${this.code}]: ${this.message}`;
+    }
+  };
+};
+
+// src/errors/invalid-payload.ts
+var messageConstructor5 = ({ reason }) => `Invalid payload. ${reason}.`;
+var InvalidPayloadError = createError(
+  "INVALID_PAYLOAD" /* InvalidPayload */,
+  messageConstructor5,
+  400
+);
+
+// src/errors/unexpected-response.ts
+var UnexpectedResponseError = createError(
+  "UNEXPECTED_RESPONSE" /* UnexpectedResponse */,
+  "Received an unexpected response.",
+  503
+);
+
+const condenser = {
+  text: "Make Shorter",
+  value: "condenser",
+  icon: "short_text",
+  messages: [
+    {
+      role: "system",
+      content: "You are a content editor. Make the content you are provided as short and easy to read as possible. The provided text may already have typesetting applied in the form of Markdown or HTML tags. You must detect whether Markdown or HTML is used and your edits must remain consistent with the detected typesetting. If the text uses HTML, only use HTML tags already present in the copy given. Avoid edits that alter the meaning substantially. Only reply with the edited version of the provided content. You will need to detect the language used and use that language."
+    }
+  ]
+};
+
+const custom = {
+  text: "Write Custom Prompt",
+  value: "custom",
+  icon: "keyboard",
+  messages: []
+};
+
+const editor = {
+  text: "Fix Spelling & Grammar",
+  value: "editor",
+  icon: "edit",
+  messages: [
+    {
+      role: "system",
+      content: "You are a copy editor. Apply light editing to content you are provided. The text may already have typesetting applied in the form of Markdown or HTML tags. You must detect whether Markdown or HTML is used and your edits must remain consistent with the detected typesetting. If the text uses HTML, only use HTML tags already present in the copy given. You should improve the overall readability if it is needed. Avoid edits that alter the meaning substantially. You must fix all grammatical and spelling errors. Only reply with the edited version of the provided copy. You will need to detect the language used and use that language."
+    },
+    {
+      role: "user",
+      content: "She no went to the market."
+    },
+    {
+      role: "assistant",
+      content: "She did not go to the market."
+    },
+    {
+      role: "user",
+      content: "Hello, my nmae is john Doe and its grate to meet you."
+    },
+    {
+      role: "assistant",
+      content: "Hello, my name is John Doe and it's great to meet you."
+    },
+    {
+      role: "user",
+      content: "Pretend you are a cheese expert. Write a small blog post about your favourite cheese. Format it using Markdown."
+    },
+    {
+      role: "assistant",
+      content: `# My Favorite Cheese: Brie
+
+As a self-proclaimed cheese connoisseur, I have tasted many varieties of cheese from around the world. However, one cheese that always stands out to me is Brie.
+
+## What is Brie?
+
+Brie is a soft cow's milk cheese named after the French region from which it originated. It has a pale, yellowish rind with a creamy interior that softens as it ripens. The rich, buttery flavor of Brie is simply irresistible.`
+    },
+    {
+      role: "user",
+      content: "Don't generate an article. Format the text I gave you as a copy editor."
+    },
+    {
+      role: "assistant",
+      content: "Pretend you are a cheese expert. Write a small blog post about your favourite cheese. Format it using Markdown."
+    }
+  ]
+};
+
+const expander = {
+  text: "Make Longer",
+  value: "expander",
+  icon: "subject",
+  messages: [
+    {
+      role: "system",
+      content: "You are a ghost writer. Expand the content you are provided to create a full length written work. The provided text may already have typesetting applied in the form of Markdown or HTML tags. You must detect whether Markdown or HTML is used and your edits must remain consistent with the detected typesetting. If the text uses HTML, only use HTML tags already present in the copy given. You will need to improve the overall readability of what is provided as the provided content may just be a few notes and ideas. You will need to establish if the notes are for a blog post, web article, or something generic. Only reply with the edited version of the provided content. You will need to detect the language used and use that language."
+    }
+  ]
+};
+
+const microblog = {
+  text: "Short Social Post",
+  value: "microblog",
+  icon: "tag",
+  messages: [
+    {
+      role: "system",
+      content: "You are a content marketer. Write a short and impactful summary of the content you are provided. The summary should be less than 280 characters long. The provided text may already have typesetting applied in the form of Markdown or HTML tags. You must detect whether Markdown or HTML is used to help with semantic understanding. Your generated summary should be written in plain text though without any markup. Only reply with the summary of the provided content. You will need to detect the language used and use that language."
+    }
+  ]
+};
+
+const seo = {
+  text: "Create SEO Description",
+  value: "seo",
+  icon: "travel_explore",
+  messages: [
+    {
+      role: "system",
+      content: "You are a Search Engine Optimisation (SEO) Marketing Specialist. Identify the key words in the content you are provided and write a short summary of the content suitable for use in a description meta HTML tag. The summary should be less than 150 characters long. The provided text may already have typesetting applied in the form of Markdown or HTML tags. You must detect whether Markdown or HTML is used to help with semantic understanding. Your generated summary should be written in plain text though without any markup. Use best practices to target the keywords in the summary. Only reply with the summary of the provided content. You will need to detect the language used and use that language."
+    }
+  ]
+};
+
+const Prompts = {
+  condenser,
+  custom,
+  editor,
+  expander,
+  microblog,
+  seo
+};
+
+class Provider {
+  constructor(options, endpoint, apiKey) {
+    if (!options.model) {
+      throw new InvalidPayloadError({ reason: "AI Model is missing" });
+    }
+    if (!options.text) {
+      throw new InvalidPayloadError({ reason: "Text is missing" });
+    }
+    this.options = options;
+    this.endpoint = endpoint;
+    this.apiKey = apiKey;
+  }
+  getMessages() {
+    const messages = [];
+    if (this.options.promptKey && this.options.promptKey in Prompts) {
+      const prompt = Prompts[this.options.promptKey];
+      if (prompt && prompt.messages) {
+        messages.push(...prompt.messages);
+      }
+    }
+    if (this.options.system) {
+      messages.push({
+        role: "system",
+        content: this.options.system
+      });
+    }
+    if (this.options.thread) {
+      messages.push(...this.options.thread);
+    }
+    messages.push({
+      role: "user",
+      content: this.options.text
+    });
+    return messages;
+  }
+}
+
+class OpenAi extends Provider {
+  constructor(options) {
+    if (!options.apiKeyOpenAi) {
+      throw new InvalidPayloadError({ reason: "OpenAI API Key is missing" });
+    }
+    super(options, "https://api.openai.com/v1/chat/completions", options.apiKeyOpenAi);
+  }
+  async messageRequest() {
+    const messages = this.getMessages();
+    const requestBody = {
+      model: this.options.model,
+      messages,
+      max_completion_tokens: this.options.maxToken || 0
+    };
+    if (this.options.json_mode) {
+      requestBody.response_format = {
+        type: "json_object"
+      };
+    }
+    const response = await request(this.endpoint, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${this.apiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(requestBody)
+    });
+    if (response.status != 200) {
+      throw new UnexpectedResponseError();
+    }
+    const data = await response.data;
+    return data.choices[0].message.content;
+  }
+}
+
+class Anthropic extends Provider {
+  constructor(options) {
+    if (!options.apiKeyAnthropic) {
+      throw new InvalidPayloadError({ reason: "Anthropic API Key is missing" });
+    }
+    super(options, "https://api.anthropic.com/v1/messages", options.apiKeyAnthropic);
+  }
+  async messageRequest() {
+    const messages = this.getMessages();
+    const requestBody = {
+      model: this.options.model,
+      messages,
+      max_tokens: this.options.maxToken || 0
+    };
+    const response = await request(this.endpoint, {
+      method: "POST",
+      headers: {
+        "x-api-key": this.apiKey,
+        "Content-Type": "application/json",
+        "anthropic-version": "2023-06-01"
+      },
+      body: JSON.stringify(requestBody)
+    });
+    if (response.status != 200) {
+      throw new UnexpectedResponseError();
+    }
+    const data = await response.data;
+    return data.content[0].text;
+  }
+}
+
+class Replicate extends Provider {
+  constructor(options) {
+    if (!options.apiKeyReplicate) {
+      throw new InvalidPayloadError({ reason: "Replicate API Key is missing" });
+    }
+    if (options.model === "meta-llama-3.1-405b-instruct") {
+      super(options, "https://api.replicate.com/v1/models/meta/meta-llama-3.1-405b-instruct/predictions", options.apiKeyReplicate);
+    } else if (options.model === "mistral-7b-v0.1") {
+      super(options, "https://api.replicate.com/v1/models/mistralai/mistral-7b-v0.1/predictions", options.apiKeyReplicate);
+    } else {
+      throw new InvalidPayloadError({ reason: `Model ${options.model} not supported` });
+    }
+  }
+  async messageRequest() {
+    var _a;
+    const messages = this.getMessages();
+    const requestBody = {
+      input: {
+        system_prompt: messages.filter((message2) => message2.role !== "user").map((message2) => message2.content).join(". "),
+        prompt: messages.filter((message2) => message2.role === "user").map((message2) => message2.content).join(". "),
+        max_tokens: this.options.maxToken || 0
+      }
+    };
+    const response = await request(this.endpoint, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${this.apiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(requestBody)
+    });
+    if (response.status != 201) {
+      throw new UnexpectedResponseError();
+    }
+    const data = response.data;
+    if (!((_a = data == null ? void 0 : data.urls) == null ? void 0 : _a.get)) {
+      throw new UnexpectedResponseError();
+    }
+    let hasFinished = false;
+    let message = "";
+    while (hasFinished === false) {
+      await sleep(1e3);
+      const fetchedMessage = await this.fetchMessage(data.urls.get);
+      message = fetchedMessage || "";
+      hasFinished = !!fetchedMessage;
+    }
+    return message;
+  }
+  async fetchMessage(url) {
+    const response = await request(url, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${this.apiKey}`,
+        "Content-Type": "application/json"
+      }
+    });
+    const data = response.data;
+    if (data && data.completed_at) {
+      return data.output.join("");
+    }
+    return false;
+  }
+}
+
+function getProvider(options) {
+  if (!options.aiProvider) {
+    throw new InvalidPayloadError({ reason: "AI Provider is missing" });
+  }
+  if (options.aiProvider.toLowerCase() === "anthropic") {
+    return new Anthropic(options);
+  }
+  if (options.aiProvider.toLowerCase() === "openai") {
+    return new OpenAi(options);
+  }
+  if (options.aiProvider.toLowerCase() === "replicate") {
+    return new Replicate(options);
+  }
+  throw new Error(`Unsoported AI Provider ${options.aiProvider}`);
+}
+
+var api = defineOperationApi({
+  id: "directus-labs-ai-writer-operation",
+  handler: async (options) => {
+    try {
+      const provider = getProvider(options);
+      const message = await provider.messageRequest();
+      return message;
+    } catch (error) {
+      log("AI Writer failed");
+      log(JSON.stringify(error));
+      throw new Error(error.message);
+    }
+  }
 });
 
-export { index as default };
+export { api as default };
