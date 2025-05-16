@@ -9,7 +9,7 @@ module.exports = function (env) {
             // https://docs.railway.app/guides/public-networking#railway-provided-port
             PORT: env.PORT,
 
-            PUBLIC_URL: `http://0.0.0.0:${env.PORT}`,
+            PUBLIC_URL: env.PUBLIC_URL,
 
             // Database & storage variables for connecting to PostGIS and S3/local storage
             DB_CLIENT: 'pg',
