@@ -90,26 +90,32 @@
 
 	// Get the current page ID from the editing context
 	const currentPageId = computed(() => {
+		console.log("=== DEBUG: PAGE BLOCK SELECTOR COMPUTED RUNNING ===");
 		console.log("=== DEBUG: Context values ===", values);
+		console.log("=== DEBUG: URL ===", window.location.href);
 
 		// Check if we're editing a page directly
 		if (values?.id && values?.permalink) {
+			console.log("=== DEBUG: Found page ID from direct editing:", values.id);
 			return values.id;
 		}
 
 		// Check if we're editing a page block and it has a page reference
 		if (values?.page) {
-			return typeof values.page === "object" ? values.page.id : values.page;
+			const pageId = typeof values.page === "object" ? values.page.id : values.page;
+			console.log("=== DEBUG: Found page ID from block context:", pageId);
+			return pageId;
 		}
 
 		// Check URL params for page context (fallback)
 		const urlParams = new URLSearchParams(window.location.search);
 		const pageParam = urlParams.get("page");
 		if (pageParam) {
+			console.log("=== DEBUG: Found page ID from URL:", pageParam);
 			return pageParam;
 		}
 
-		console.log("No page ID found!");
+		console.log("=== DEBUG: No page ID found! ===");
 		return null;
 	});
 
@@ -222,6 +228,8 @@
 	);
 
 	onMounted(() => {
+		console.log("=== DEBUG: PAGE BLOCK SELECTOR MOUNTED ===");
+		console.log("=== DEBUG: values on mount:", values);
 		fetchPageBlocks();
 	});
 </script>
