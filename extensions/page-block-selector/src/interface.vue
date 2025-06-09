@@ -1,5 +1,14 @@
 <template>
 	<div>
+		<!-- Debug info -->
+		<div
+			v-if="availableBlocks.length > 0"
+			class="text-xs text-gray-500 mb-2"
+		>
+			Available blocks: {{ availableBlocks.length }} | Sample:
+			{{ availableBlocks[0]?.display_name || "No display name" }}
+		</div>
+
 		<v-select
 			:model-value="selectedBlocks"
 			:items="availableBlocks"
@@ -18,6 +27,15 @@
 					<span v-else-if="!currentPageId">No page context found</span>
 					<span v-else>No blocks found on this page</span>
 				</div>
+			</template>
+
+			<!-- Custom item template to debug -->
+			<template #item="{ props, item }">
+				<v-list-item v-bind="props">
+					<v-list-item-title>
+						{{ item?.raw?.display_name || item?.title || "No title" }}
+					</v-list-item-title>
+				</v-list-item>
 			</template>
 		</v-select>
 
@@ -231,6 +249,12 @@
 			);
 
 			availableBlocks.value = blocksWithData;
+
+			console.log("=== DEBUG: Final availableBlocks ===", availableBlocks.value);
+			console.log(
+				"=== DEBUG: First block display_name ===",
+				availableBlocks.value[0]?.display_name
+			);
 
 			// Update sorted blocks with full block data
 			updateSortedBlocks();
