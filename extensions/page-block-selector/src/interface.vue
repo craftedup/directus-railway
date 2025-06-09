@@ -11,11 +11,11 @@
 
 		<v-select
 			:model-value="selectedBlocks"
-			:items="availableBlocks"
+			:items="formattedBlocks"
 			:loading="loading"
 			:placeholder="placeholder"
-			item-title="display_name"
-			item-value="id"
+			item-title="title"
+			item-value="value"
 			multiple
 			chips
 			closable-chips
@@ -27,15 +27,6 @@
 					<span v-else-if="!currentPageId">No page context found</span>
 					<span v-else>No blocks found on this page</span>
 				</div>
-			</template>
-
-			<!-- Custom item template to debug -->
-			<template #item="{ props, item }">
-				<v-list-item v-bind="props">
-					<v-list-item-title>
-						{{ item?.raw?.display_name || item?.title || "No title" }}
-					</v-list-item-title>
-				</v-list-item>
 			</template>
 		</v-select>
 
@@ -104,6 +95,15 @@
 	// Get selected block IDs
 	const selectedBlocks = computed(() => {
 		return props.value || [];
+	});
+
+	// Format blocks for v-select (Vuetify expects specific structure)
+	const formattedBlocks = computed(() => {
+		return availableBlocks.value.map((block) => ({
+			title: block.display_name,
+			value: block.id,
+			...block, // Keep original data
+		}));
 	});
 
 	// Get the current page ID from the editing context
