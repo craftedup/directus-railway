@@ -90,6 +90,8 @@
 
 	// Get the current page ID from the editing context
 	const currentPageId = computed(() => {
+		console.log("=== DEBUG: Context values ===", values);
+
 		// Check if we're editing a page directly
 		if (values?.id && values?.permalink) {
 			return values.id;
@@ -107,10 +109,12 @@
 			return pageParam;
 		}
 
+		console.log("No page ID found!");
 		return null;
 	});
 
 	const fetchPageBlocks = async () => {
+		console.log("Fetching page blocks for page:", currentPageId.value);
 		if (!currentPageId.value) {
 			console.warn("No page ID found for block selector");
 			return;
