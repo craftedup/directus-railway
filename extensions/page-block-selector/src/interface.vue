@@ -94,26 +94,34 @@
 		console.log("=== DEBUG: Context values ===", values);
 		console.log("=== DEBUG: URL ===", window.location.href);
 
-		// Check if we're editing a page directly
-		if (values?.id && values?.permalink) {
-			console.log("=== DEBUG: Found page ID from direct editing:", values.id);
-			return values.id;
+		// Extract page ID from URL path (when editing pages directly)
+		const urlPath = window.location.pathname;
+		const pageMatch = urlPath.match(/\/pages\/([a-f0-9-]+)/);
+		if (pageMatch) {
+			console.log("=== DEBUG: Found page ID from URL path:", pageMatch[1]);
+			return pageMatch[1];
 		}
 
-		// Check if we're editing a page block and it has a page reference
-		if (values?.page) {
-			const pageId = typeof values.page === "object" ? values.page.id : values.page;
-			console.log("=== DEBUG: Found page ID from block context:", pageId);
-			return pageId;
-		}
+		// // Check if we're editing a page directly (alternative method)
+		// if (values?.id && values?.permalink) {
+		// 	console.log("=== DEBUG: Found page ID from direct editing:", values.id);
+		// 	return values.id;
+		// }
 
-		// Check URL params for page context (fallback)
-		const urlParams = new URLSearchParams(window.location.search);
-		const pageParam = urlParams.get("page");
-		if (pageParam) {
-			console.log("=== DEBUG: Found page ID from URL:", pageParam);
-			return pageParam;
-		}
+		// // Check if we're editing a page block and it has a page reference
+		// if (values?.page) {
+		// 	const pageId = typeof values.page === "object" ? values.page.id : values.page;
+		// 	console.log("=== DEBUG: Found page ID from block context:", pageId);
+		// 	return pageId;
+		// }
+
+		// // Check URL params for page context (fallback)
+		// const urlParams = new URLSearchParams(window.location.search);
+		// const pageParam = urlParams.get("page");
+		// if (pageParam) {
+		// 	console.log("=== DEBUG: Found page ID from URL params:", pageParam);
+		// 	return pageParam;
+		// }
 
 		console.log("=== DEBUG: No page ID found! ===");
 		return null;
