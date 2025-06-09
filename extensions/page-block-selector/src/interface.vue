@@ -142,17 +142,7 @@
 						page: { _eq: currentPageId.value },
 						hide_block: { _neq: true },
 					},
-					fields: [
-						"id",
-						"collection",
-						"sort",
-						"item.id",
-						"item.headline",
-						"item.title",
-						"item.heading",
-						"item.name",
-						"item.tagline",
-					],
+					fields: ["id", "collection", "sort", "item"],
 					sort: ["sort"],
 				},
 			});
