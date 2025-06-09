@@ -136,6 +136,7 @@
 
 		loading.value = true;
 		try {
+			// First, get the page_blocks with basic info (collection and item ID)
 			const response = await api.get("/items/page_blocks", {
 				params: {
 					filter: {
@@ -147,29 +148,89 @@
 				},
 			});
 
-			availableBlocks.value = response.data.data
-				.filter((block: any) => block.id !== values?.id) // Exclude current block if editing a block
-				.map((block: any) => {
-					// Try to get a meaningful display name from various possible fields
-					const displayName =
-						block.item?.headline ||
-						block.item?.title ||
-						block.item?.heading ||
-						block.item?.name ||
-						block.item?.tagline ||
-						"Untitled Block";
+			console.log("=== DEBUG: Raw page_blocks response ===", response.data.data);
 
-					const blockType = block.collection
-						.replace("block_", "")
-						.replace(/_/g, " ")
-						.replace(/\b\w/g, (l: string) => l.toUpperCase());
+			// Now fetch the actual block data for each block
+			const blocksWithData = await Promise.all(
+				response.data.data
+					.filter((block: any) => block.id !== values?.id) // Exclude current block if editing a block
+					.map(async (block: any) => {
+						console.log("=== DEBUG: Processing block ===", block);
 
-					return {
-						id: block.id,
-						display_name: `${blockType}: ${displayName}`,
-						collection: block.collection,
-					};
-				});
+						try {
+							// Fetch the actual block data from its collection
+							const blockResponse = await api.get(`/items/${block.collection}/${block.item}`);
+							const itemData = blockResponse.data.data;
+
+							console.log("=== DEBUG: Block item data ===", itemData);
+
+							// Try to get a meaningful display name from various possible fields
+							const displayName =
+								itemData?.headline ||
+								itemData?.title ||
+								itemData?.heading ||
+								itemData?.name ||
+								itemData?.eyebrow ||
+								itemData?.tagline ||
+								itemData?.eyebrow_heading ||
+								itemData?.subheading ||
+								itemData?.label ||
+								// Then check for specific content indicators
+								(itemData?.numOfColumns ? `${itemData.numOfColumns} columns` : null) ||
+								(itemData?.alignment ? `Alignment: ${itemData.alignment}` : null) ||
+								(itemData?.text ? itemData.text.substring(0, 50) + "..." : null) ||
+								(itemData?.content ? itemData.content.substring(0, 50) + "..." : null) ||
+								// Fallback to any string field that might be meaningful
+								(() => {
+									const stringFields = Object.entries(itemData || {}).filter(
+										([key, value]) =>
+											typeof value === "string" &&
+											value.length > 0 &&
+											value.length < 100 &&
+											!key.includes("id") &&
+											!key.includes("date") &&
+											!key.includes("user")
+									);
+									return stringFields.length > 0 ? stringFields[0][1] : "Untitled Block";
+								})();
+
+							const blockType = block.collection
+								.replace("block_", "")
+								.replace(/_/g, " ")
+								.replace(/\b\w/g, (l: string) => l.toUpperCase());
+
+							const result = {
+								id: block.id,
+								display_name: `${blockType}: ${displayName}`,
+								collection: block.collection,
+								item_id: block.item,
+							};
+
+							console.log("=== DEBUG: Mapped block ===", result);
+							return result;
+						} catch (error) {
+							console.error(
+								`Error fetching block data for ${block.collection}/${block.item}:`,
+								error
+							);
+
+							// Fallback to just collection name if we can't fetch the block data
+							const blockType = block.collection
+								.replace("block_", "")
+								.replace(/_/g, " ")
+								.replace(/\b\w/g, (l: string) => l.toUpperCase());
+
+							return {
+								id: block.id,
+								display_name: `${blockType}: [Error loading data]`,
+								collection: block.collection,
+								item_id: block.item,
+							};
+						}
+					})
+			);
+
+			availableBlocks.value = blocksWithData;
 
 			// Update sorted blocks with full block data
 			updateSortedBlocks();
