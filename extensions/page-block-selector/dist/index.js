@@ -1,5 +1,5 @@
 import * as vue from 'vue';
-import { defineComponent, inject, ref, computed, watch, onMounted, resolveComponent, openBlock, createElementBlock, createCommentVNode, toDisplayString, createVNode, withCtx, createElementVNode, unref } from 'vue';
+import { defineComponent, inject, ref, computed, watch, onMounted, resolveComponent, openBlock, createElementBlock, createCommentVNode, toDisplayString, createElementVNode, createTextVNode, Fragment, renderList, createVNode, withCtx, unref } from 'vue';
 import { useApi } from '@directus/extensions-sdk';
 
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
@@ -8935,15 +8935,23 @@ const _hoisted_1 = {
   key: 0,
   class: "text-xs text-gray-500 mb-2"
 };
-const _hoisted_2 = { class: "text-center pa-4" };
+const _hoisted_2 = { class: "mb-4 p-2 bg-yellow-100 border rounded" };
 const _hoisted_3 = { key: 0 };
-const _hoisted_4 = { key: 1 };
-const _hoisted_5 = { key: 2 };
-const _hoisted_6 = {
+const _hoisted_4 = { class: "mb-4" };
+const _hoisted_5 = {
+  multiple: "",
+  style: { "width": "100%", "height": "100px" }
+};
+const _hoisted_6 = ["value"];
+const _hoisted_7 = { class: "text-center pa-4" };
+const _hoisted_8 = { key: 0 };
+const _hoisted_9 = { key: 1 };
+const _hoisted_10 = { key: 2 };
+const _hoisted_11 = {
   key: 1,
   class: "mt-4"
 };
-const _hoisted_7 = { class: "flex items-center p-2 bg-gray-50 rounded border cursor-move" };
+const _hoisted_12 = { class: "flex items-center p-2 bg-gray-50 rounded border cursor-move" };
 var _sfc_main = /* @__PURE__ */ defineComponent({
   __name: "interface",
   props: {
@@ -8963,10 +8971,13 @@ var _sfc_main = /* @__PURE__ */ defineComponent({
       return props.value || [];
     });
     const formattedBlocks = computed(() => {
-      return availableBlocks.value.map((block) => __spreadValues({
+      const formatted = availableBlocks.value.map((block) => __spreadValues({
         title: block.display_name,
         value: block.id
       }, block));
+      console.log("=== DEBUG: formattedBlocks computed ===", formatted);
+      console.log("=== DEBUG: First formatted block ===", formatted[0]);
+      return formatted;
     });
     const currentPageId = computed(() => {
       console.log("=== DEBUG: PAGE BLOCK SELECTOR COMPUTED RUNNING ===");
@@ -9104,6 +9115,78 @@ var _sfc_main = /* @__PURE__ */ defineComponent({
           1
           /* TEXT */
         )) : createCommentVNode("v-if", true),
+        createCommentVNode(" Debug: Raw data display "),
+        createElementVNode("div", _hoisted_2, [
+          _cache[1] || (_cache[1] = createElementVNode(
+            "strong",
+            null,
+            "Debug Info:",
+            -1
+            /* HOISTED */
+          )),
+          _cache[2] || (_cache[2] = createElementVNode(
+            "br",
+            null,
+            null,
+            -1
+            /* HOISTED */
+          )),
+          createTextVNode(
+            " Available blocks: " + toDisplayString(availableBlocks.value.length),
+            1
+            /* TEXT */
+          ),
+          _cache[3] || (_cache[3] = createElementVNode(
+            "br",
+            null,
+            null,
+            -1
+            /* HOISTED */
+          )),
+          createTextVNode(
+            " Formatted blocks: " + toDisplayString(formattedBlocks.value.length),
+            1
+            /* TEXT */
+          ),
+          _cache[4] || (_cache[4] = createElementVNode(
+            "br",
+            null,
+            null,
+            -1
+            /* HOISTED */
+          )),
+          formattedBlocks.value.length > 0 ? (openBlock(), createElementBlock(
+            "div",
+            _hoisted_3,
+            " First formatted: " + toDisplayString(JSON.stringify(formattedBlocks.value[0], null, 2)),
+            1
+            /* TEXT */
+          )) : createCommentVNode("v-if", true)
+        ]),
+        createCommentVNode(" Debug: Simple HTML select "),
+        createElementVNode("div", _hoisted_4, [
+          _cache[5] || (_cache[5] = createElementVNode(
+            "label",
+            null,
+            "Debug HTML Select:",
+            -1
+            /* HOISTED */
+          )),
+          createElementVNode("select", _hoisted_5, [
+            (openBlock(true), createElementBlock(
+              Fragment,
+              null,
+              renderList(formattedBlocks.value, (block) => {
+                return openBlock(), createElementBlock("option", {
+                  key: block.value,
+                  value: block.value
+                }, toDisplayString(block.title), 9, _hoisted_6);
+              }),
+              128
+              /* KEYED_FRAGMENT */
+            ))
+          ])
+        ]),
         createVNode(_component_v_select, {
           "model-value": selectedBlocks.value,
           items: formattedBlocks.value,
@@ -9117,16 +9200,16 @@ var _sfc_main = /* @__PURE__ */ defineComponent({
           "onUpdate:modelValue": handleSelection
         }, {
           "no-data": withCtx(() => [
-            createElementVNode("div", _hoisted_2, [
-              loading.value ? (openBlock(), createElementBlock("span", _hoisted_3, "Loading blocks...")) : !currentPageId.value ? (openBlock(), createElementBlock("span", _hoisted_4, "No page context found")) : (openBlock(), createElementBlock("span", _hoisted_5, "No blocks found on this page"))
+            createElementVNode("div", _hoisted_7, [
+              loading.value ? (openBlock(), createElementBlock("span", _hoisted_8, "Loading blocks...")) : !currentPageId.value ? (openBlock(), createElementBlock("span", _hoisted_9, "No page context found")) : (openBlock(), createElementBlock("span", _hoisted_10, "No blocks found on this page"))
             ])
           ]),
           _: 1
           /* STABLE */
         }, 8, ["model-value", "items", "loading", "placeholder"]),
         createCommentVNode(" Sortable list of selected blocks "),
-        sortedBlocks.value.length > 0 ? (openBlock(), createElementBlock("div", _hoisted_6, [
-          _cache[1] || (_cache[1] = createElementVNode(
+        sortedBlocks.value.length > 0 ? (openBlock(), createElementBlock("div", _hoisted_11, [
+          _cache[6] || (_cache[6] = createElementVNode(
             "div",
             { class: "text-sm font-medium mb-2" },
             "Selected blocks (drag to reorder):",
@@ -9141,7 +9224,7 @@ var _sfc_main = /* @__PURE__ */ defineComponent({
             class: "space-y-2"
           }, {
             item: withCtx(({ element }) => [
-              createElementVNode("div", _hoisted_7, [
+              createElementVNode("div", _hoisted_12, [
                 createVNode(_component_v_icon, {
                   name: "drag_indicator",
                   class: "mr-2 text-gray-400"

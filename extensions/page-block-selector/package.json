@@ -14,7 +14,8 @@
 	},
 	"scripts": {
 		"build": "directus-extension build",
-		"dev": "directus-extension build -w --no-minify"
+		"dev": "directus-extension build --no-minify",
+		"watch": "directus-extension build -w --no-minify"
 	},
 	"devDependencies": {
 		"@directus/extensions-sdk": "12.0.1",
@@ -25,3 +26,4 @@
 		"vuedraggable": "^4.1.0"
 	}
 }
+

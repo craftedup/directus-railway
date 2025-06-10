@@ -9,6 +9,33 @@
 			{{ availableBlocks[0]?.display_name || "No display name" }}
 		</div>
 
+		<!-- Debug: Raw data display -->
+		<div class="mb-4 p-2 bg-yellow-100 border rounded">
+			<strong>Debug Info:</strong><br />
+			Available blocks: {{ availableBlocks.length }}<br />
+			Formatted blocks: {{ formattedBlocks.length }}<br />
+			<div v-if="formattedBlocks.length > 0">
+				First formatted: {{ JSON.stringify(formattedBlocks[0], null, 2) }}
+			</div>
+		</div>
+
+		<!-- Debug: Simple HTML select -->
+		<div class="mb-4">
+			<label>Debug HTML Select:</label>
+			<select
+				multiple
+				style="width: 100%; height: 100px"
+			>
+				<option
+					v-for="block in formattedBlocks"
+					:key="block.value"
+					:value="block.value"
+				>
+					{{ block.title }}
+				</option>
+			</select>
+		</div>
+
 		<v-select
 			:model-value="selectedBlocks"
 			:items="formattedBlocks"
@@ -99,11 +126,14 @@
 
 	// Format blocks for v-select (Vuetify expects specific structure)
 	const formattedBlocks = computed(() => {
-		return availableBlocks.value.map((block) => ({
+		const formatted = availableBlocks.value.map((block) => ({
 			title: block.display_name,
 			value: block.id,
 			...block, // Keep original data
 		}));
+		console.log("=== DEBUG: formattedBlocks computed ===", formatted);
+		console.log("=== DEBUG: First formatted block ===", formatted[0]);
+		return formatted;
 	});
 
 	// Get the current page ID from the editing context
