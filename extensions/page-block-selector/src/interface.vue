@@ -1,26 +1,5 @@
 <template>
 	<div>
-		<!-- Debug info -->
-		<div
-			v-if="availableBlocks.length > 0"
-			class="text-xs text-gray-500 mb-2"
-		>
-			Available blocks: {{ availableBlocks.length }} | Sample:
-			{{ availableBlocks[0]?.display_name || "No display name" }}
-		</div>
-
-		<!-- Debug: Raw data display (remove this after testing) -->
-		<div
-			class="debug-info"
-			v-if="formattedBlocks.length > 0"
-		>
-			<strong>Debug Info:</strong><br />
-			Available blocks: {{ availableBlocks.length }}<br />
-			Formatted blocks: {{ formattedBlocks.length }}<br />
-			First block: {{ formattedBlocks[0]?.title }}
-		</div>
-
-		<!-- Directus-style v-list component -->
 		<v-list>
 			<v-list-item
 				v-for="block in formattedBlocks"
@@ -136,52 +115,22 @@
 			value: block.id,
 			...block, // Keep original data
 		}));
-		console.log("=== DEBUG: formattedBlocks computed ===", formatted);
-		console.log("=== DEBUG: First formatted block ===", formatted[0]);
 		return formatted;
 	});
 
 	// Get the current page ID from the editing context
 	const currentPageId = computed(() => {
-		console.log("=== DEBUG: PAGE BLOCK SELECTOR COMPUTED RUNNING ===");
-		console.log("=== DEBUG: Context values ===", values);
-		console.log("=== DEBUG: URL ===", window.location.href);
-
 		// Extract page ID from URL path (when editing pages directly)
 		const urlPath = window.location.pathname;
 		const pageMatch = urlPath.match(/\/pages\/([a-f0-9-]+)/);
 		if (pageMatch) {
-			console.log("=== DEBUG: Found page ID from URL path:", pageMatch[1]);
 			return pageMatch[1];
 		}
 
-		// // Check if we're editing a page directly (alternative method)
-		// if (values?.id && values?.permalink) {
-		// 	console.log("=== DEBUG: Found page ID from direct editing:", values.id);
-		// 	return values.id;
-		// }
-
-		// // Check if we're editing a page block and it has a page reference
-		// if (values?.page) {
-		// 	const pageId = typeof values.page === "object" ? values.page.id : values.page;
-		// 	console.log("=== DEBUG: Found page ID from block context:", pageId);
-		// 	return pageId;
-		// }
-
-		// // Check URL params for page context (fallback)
-		// const urlParams = new URLSearchParams(window.location.search);
-		// const pageParam = urlParams.get("page");
-		// if (pageParam) {
-		// 	console.log("=== DEBUG: Found page ID from URL params:", pageParam);
-		// 	return pageParam;
-		// }
-
-		console.log("=== DEBUG: No page ID found! ===");
 		return null;
 	});
 
 	const fetchPageBlocks = async () => {
-		console.log("Fetching page blocks for page:", currentPageId.value);
 		if (!currentPageId.value) {
 			console.warn("No page ID found for block selector");
 			return;
@@ -201,21 +150,15 @@
 				},
 			});
 
-			console.log("=== DEBUG: Raw page_blocks response ===", response.data.data);
-
 			// Now fetch the actual block data for each block
 			const blocksWithData = await Promise.all(
 				response.data.data
 					.filter((block: any) => block.id !== values?.id) // Exclude current block if editing a block
 					.map(async (block: any) => {
-						console.log("=== DEBUG: Processing block ===", block);
-
 						try {
 							// Fetch the actual block data from its collection
 							const blockResponse = await api.get(`/items/${block.collection}/${block.item}`);
 							const itemData = blockResponse.data.data;
-
-							console.log("=== DEBUG: Block item data ===", itemData);
 
 							// Try to get a meaningful display name from various possible fields
 							const displayName =
@@ -259,7 +202,6 @@
 								item_id: block.item,
 							};
 
-							console.log("=== DEBUG: Mapped block ===", result);
 							return result;
 						} catch (error) {
 							console.error(
@@ -285,16 +227,8 @@
 
 			availableBlocks.value = blocksWithData;
 
-			console.log("=== DEBUG: Final availableBlocks ===", availableBlocks.value);
-			console.log(
-				"=== DEBUG: First block display_name ===",
-				availableBlocks.value[0]?.display_name
-			);
-
 			// Update sorted blocks with full block data
 			updateSortedBlocks();
-
-			console.log("Fetched blocks for page:", currentPageId.value, availableBlocks.value);
 		} catch (error) {
 			console.error("Error fetching page blocks:", error);
 			availableBlocks.value = [];
@@ -312,10 +246,6 @@
 		sortedBlocks.value = selectedBlocks.value
 			.map((id) => availableBlocks.value.find((block) => block.id === id))
 			.filter(Boolean) as Array<{ id: string; display_name: string; collection: string }>;
-	};
-
-	const handleSelection = (newSelection: string[]) => {
-		emit("input", newSelection);
 	};
 
 	const toggleSelection = (blockId: string) => {
@@ -359,8 +289,6 @@
 	);
 
 	onMounted(() => {
-		console.log("=== DEBUG: PAGE BLOCK SELECTOR MOUNTED ===");
-		console.log("=== DEBUG: values on mount:", values);
 		fetchPageBlocks();
 	});
 </script>
@@ -376,16 +304,6 @@
 
 	.text-success {
 		color: var(--theme--success);
-	}
-
-	/* Debug styling */
-	.debug-info {
-		background-color: var(--theme--warning--background);
-		border: 1px solid var(--theme--warning);
-		padding: 8px;
-		margin-bottom: 12px;
-		border-radius: var(--theme--border-radius);
-		font-size: 12px;
 	}
 </style>
 
