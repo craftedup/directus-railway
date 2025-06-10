@@ -44,9 +44,9 @@
 		<!-- Sortable list of selected blocks with label inputs -->
 		<div
 			v-if="selectedItems.length > 0"
-			class="mt-4"
+			class="selected-blocks-section"
 		>
-			<div class="text-sm font-medium mb-2">Selected blocks (drag to reorder, edit labels):</div>
+			<div class="selected-blocks-title">Selected blocks (drag to reorder, edit labels):</div>
 			<draggable
 				v-model="selectedItems"
 				item-key="block_id"
@@ -404,6 +404,17 @@
 
 	.remove-btn {
 		color: var(--theme--danger);
+	}
+
+	.selected-blocks-section {
+		margin-top: 16px; /* mt-4 equivalent */
+	}
+
+	.selected-blocks-title {
+		font-size: 14px; /* text-sm equivalent */
+		font-weight: 500; /* font-medium equivalent */
+		margin-bottom: 8px; /* mb-2 equivalent */
+		color: var(--theme--foreground);
 	}
 </style>
 
