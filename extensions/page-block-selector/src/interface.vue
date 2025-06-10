@@ -9,53 +9,58 @@
 			{{ availableBlocks[0]?.display_name || "No display name" }}
 		</div>
 
-		<!-- Debug: Raw data display -->
-		<div class="mb-4 p-2 bg-yellow-100 border rounded">
+		<!-- Debug: Raw data display (remove this after testing) -->
+		<div
+			class="debug-info"
+			v-if="formattedBlocks.length > 0"
+		>
 			<strong>Debug Info:</strong><br />
 			Available blocks: {{ availableBlocks.length }}<br />
 			Formatted blocks: {{ formattedBlocks.length }}<br />
-			<div v-if="formattedBlocks.length > 0">
-				First formatted: {{ JSON.stringify(formattedBlocks[0], null, 2) }}
-			</div>
+			First block: {{ formattedBlocks[0]?.title }}
 		</div>
 
-		<!-- Debug: Simple HTML select -->
-		<div class="mb-4">
-			<label>Debug HTML Select:</label>
-			<select
-				multiple
-				style="width: 100%; height: 100px"
+		<!-- Directus-style v-list component -->
+		<v-list>
+			<v-list-item
+				v-for="block in formattedBlocks"
+				:key="block.value"
+				:value="block.value"
+				@click="toggleSelection(block.value)"
+				:active="selectedBlocks.includes(block.value)"
+				clickable
 			>
-				<option
-					v-for="block in formattedBlocks"
-					:key="block.value"
-					:value="block.value"
-				>
-					{{ block.title }}
-				</option>
-			</select>
-		</div>
+				<v-list-item-content>
+					<v-list-item-title>{{ block.title }}</v-list-item-title>
+				</v-list-item-content>
 
-		<v-select
-			:model-value="selectedBlocks"
-			:items="formattedBlocks"
-			:loading="loading"
-			:placeholder="placeholder"
-			item-title="title"
-			item-value="value"
-			multiple
-			chips
-			closable-chips
-			@update:model-value="handleSelection"
-		>
-			<template #no-data>
-				<div class="text-center pa-4">
-					<span v-if="loading">Loading blocks...</span>
-					<span v-else-if="!currentPageId">No page context found</span>
-					<span v-else>No blocks found on this page</span>
-				</div>
-			</template>
-		</v-select>
+				<template #append>
+					<v-icon
+						v-if="selectedBlocks.includes(block.value)"
+						name="check"
+						class="text-success"
+					/>
+				</template>
+			</v-list-item>
+
+			<v-list-item v-if="loading">
+				<v-list-item-content>
+					<v-list-item-title>Loading blocks...</v-list-item-title>
+				</v-list-item-content>
+			</v-list-item>
+
+			<v-list-item v-else-if="!currentPageId">
+				<v-list-item-content>
+					<v-list-item-title>No page context found</v-list-item-title>
+				</v-list-item-content>
+			</v-list-item>
+
+			<v-list-item v-else-if="formattedBlocks.length === 0">
+				<v-list-item-content>
+					<v-list-item-title>No blocks found on this page</v-list-item-title>
+				</v-list-item-content>
+			</v-list-item>
+		</v-list>
 
 		<!-- Sortable list of selected blocks -->
 		<div
@@ -313,6 +318,19 @@
 		emit("input", newSelection);
 	};
 
+	const toggleSelection = (blockId: string) => {
+		const currentSelection = [...selectedBlocks.value];
+		const index = currentSelection.indexOf(blockId);
+
+		if (index > -1) {
+			currentSelection.splice(index, 1);
+		} else {
+			currentSelection.push(blockId);
+		}
+
+		emit("input", currentSelection);
+	};
+
 	const handleSort = () => {
 		// Extract IDs in the new order
 		const newOrder = sortedBlocks.value.map((block) => block.id);
@@ -346,4 +364,28 @@
 		fetchPageBlocks();
 	});
 </script>
+
+<style scoped>
+	.v-list {
+		max-height: 300px;
+		overflow-y: auto;
+		border: var(--theme--border-width) solid var(--theme--form--field--input--border-color);
+		border-radius: var(--theme--border-radius);
+		background-color: var(--theme--background);
+	}
+
+	.text-success {
+		color: var(--theme--success);
+	}
+
+	/* Debug styling */
+	.debug-info {
+		background-color: var(--theme--warning--background);
+		border: 1px solid var(--theme--warning);
+		padding: 8px;
+		margin-bottom: 12px;
+		border-radius: var(--theme--border-radius);
+		font-size: 12px;
+	}
+</style>
 
