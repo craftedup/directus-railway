@@ -50,8 +50,7 @@
 			<draggable
 				v-model="selectedItems"
 				item-key="block_id"
-				@change="handleSort"
-				class="space-y-2"
+				class="jump-nav-list"
 			>
 				<template #item="{ element }">
 					<div class="jump-nav-item">
@@ -129,9 +128,12 @@
 		return props.value?.map((item) => item.block_id) || [];
 	});
 
-	// Get selected items with labels
-	const selectedItems = computed(() => {
-		return props.value || [];
+	// Get selected items with labels (writable computed for drag & drop)
+	const selectedItems = computed({
+		get: () => props.value || [],
+		set: (newValue) => {
+			emit("input", newValue);
+		},
 	});
 
 	// Format blocks for v-select (Vuetify expects specific structure)
@@ -307,15 +309,6 @@
 		updateLabel(blockId, target.value);
 	};
 
-	const handleSort = () => {
-		// Extract items in the new order
-		const newOrder = sortedBlocks.value.map((block) => {
-			const existingItem = selectedItems.value.find((item) => item.block_id === block.id);
-			return existingItem || { block_id: block.id, label: block.display_name };
-		});
-		emit("input", newOrder);
-	};
-
 	const removeBlock = (blockId: string) => {
 		const newSelection = selectedItems.value.filter((item) => item.block_id !== blockId);
 		emit("input", newSelection);
@@ -353,6 +346,12 @@
 
 	.text-success {
 		color: var(--theme--success);
+	}
+
+	.jump-nav-list {
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
 	}
 
 	.jump-nav-item {
