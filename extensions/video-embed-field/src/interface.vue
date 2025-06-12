@@ -141,7 +141,6 @@
 
 <script setup lang="ts">
 	import { ref, computed, watch } from "vue";
-	import { useApi } from "@directus/extensions-sdk";
 
 	interface Props {
 		value?: any;
@@ -162,7 +161,6 @@
 	});
 
 	const emit = defineEmits<Emits>();
-	const api = useApi();
 
 	const url = ref("");
 	const loading = ref(false);
