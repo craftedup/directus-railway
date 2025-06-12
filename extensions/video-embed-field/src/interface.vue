@@ -28,7 +28,7 @@
 				indeterminate
 				small
 			/>
-			<span class="loading-text">Fetching embed data...</span>
+			<span class="loading-text">Processing video URL...</span>
 		</div>
 
 		<div
@@ -61,10 +61,18 @@
 
 			<div class="preview-content">
 				<div
-					v-if="oembedData.type === 'video' || oembedData.type === 'rich'"
+					v-if="oembedData.type === 'video'"
 					class="embed-container"
-					v-html="oembedData.html"
-				></div>
+				>
+					<iframe
+						:src="getEmbedUrl()"
+						:width="oembedData.width || 560"
+						:height="oembedData.height || 315"
+						frameborder="0"
+						allowfullscreen
+					>
+					</iframe>
+				</div>
 				<div
 					v-else-if="oembedData.type === 'photo'"
 					class="photo-container"
@@ -133,6 +141,7 @@
 
 <script setup lang="ts">
 	import { ref, computed, watch } from "vue";
+	import { useApi } from "@directus/extensions-sdk";
 
 	interface Props {
 		value?: any;
@@ -147,12 +156,13 @@
 	}
 
 	const props = withDefaults(defineProps<Props>(), {
-		placeholder: "Paste a URL (YouTube, Vimeo, etc.)",
+		placeholder: "Paste a video URL (YouTube, Vimeo, etc.)",
 		auto_fetch: true,
 		show_preview: true,
 	});
 
 	const emit = defineEmits<Emits>();
+	const api = useApi();
 
 	const url = ref("");
 	const loading = ref(false);
@@ -208,16 +218,44 @@
 		},
 	];
 
-	function findProvider(inputUrl: string): string | null {
+	function findProvider(inputUrl: string): { provider: string; endpoint: string } | null {
 		for (const provider of oembedProviders) {
 			for (const scheme of provider.schemes) {
 				const regex = new RegExp(scheme.replace(/\*/g, ".*"));
 				if (regex.test(inputUrl)) {
-					return provider.endpoint;
+					return provider;
 				}
 			}
 		}
 		return null;
+	}
+
+	function extractYouTubeId(url: string): string | null {
+		const regex =
+			/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+		const match = url.match(regex);
+		return match ? match[1] : null;
+	}
+
+	function extractVimeoId(url: string): string | null {
+		const regex =
+			/vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/([^\/]*)\/videos\/|album\/(\d+)\/video\/|)(\d+)(?:$|\/|\?)/;
+		const match = url.match(regex);
+		return match ? match[3] : null;
+	}
+
+	function getEmbedUrl(): string {
+		if (!oembedData.value) return "";
+
+		if (oembedData.value.provider_name === "YouTube") {
+			const videoId = extractYouTubeId(url.value);
+			return videoId ? `https://www.youtube.com/embed/${videoId}` : "";
+		} else if (oembedData.value.provider_name === "Vimeo") {
+			const videoId = extractVimeoId(url.value);
+			return videoId ? `https://player.vimeo.com/video/${videoId}` : "";
+		}
+
+		return "";
 	}
 
 	async function fetchOembedData() {
@@ -227,21 +265,62 @@
 		error.value = "";
 
 		try {
-			const endpoint = findProvider(url.value);
+			const provider = findProvider(url.value);
 
-			if (!endpoint) {
-				throw new Error(
-					"Unsupported provider. Supported: YouTube, Vimeo, Twitter, Instagram, TikTok, Spotify"
-				);
+			if (!provider) {
+				throw new Error("Unsupported video platform. Supported: YouTube, Vimeo");
 			}
 
-			const response = await fetch(`${endpoint}?url=${encodeURIComponent(url.value)}&format=json`);
+			// Use manual parsing for common providers to avoid CORS issues
+			let data;
 
-			if (!response.ok) {
-				throw new Error(`Failed to fetch oEmbed data: ${response.statusText}`);
+			// For YouTube, we can extract video ID and create embed data manually
+			if (provider.provider === "YouTube") {
+				const videoId = extractYouTubeId(url.value);
+				if (videoId) {
+					data = {
+						type: "video",
+						version: "1.0",
+						title: "YouTube Video",
+						author_name: "YouTube",
+						provider_name: "YouTube",
+						provider_url: "https://www.youtube.com",
+						thumbnail_url: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+						html: `<iframe width="560" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`,
+						width: 560,
+						height: 315,
+					};
+				} else {
+					throw new Error("Invalid YouTube URL");
+				}
+			} else if (provider.provider === "Vimeo") {
+				const videoId = extractVimeoId(url.value);
+				if (videoId) {
+					data = {
+						type: "video",
+						version: "1.0",
+						title: "Vimeo Video",
+						author_name: "Vimeo",
+						provider_name: "Vimeo",
+						provider_url: "https://vimeo.com",
+						html: `<iframe src="https://player.vimeo.com/video/${videoId}" width="640" height="360" frameborder="0" allowfullscreen></iframe>`,
+						width: 640,
+						height: 360,
+					};
+				} else {
+					throw new Error("Invalid Vimeo URL");
+				}
+			} else {
+				// For other providers, we'll store basic URL info
+				data = {
+					type: "link",
+					version: "1.0",
+					title: url.value,
+					provider_name: provider.provider,
+					provider_url: url.value,
+				};
 			}
 
-			const data = await response.json();
 			oembedData.value = data;
 
 			// Store both URL and oEmbed data
@@ -253,10 +332,10 @@
 
 			emit("input", rawData.value);
 		} catch (err) {
-			error.value = err instanceof Error ? err.message : "Failed to fetch oEmbed data";
+			error.value = err instanceof Error ? err.message : "Failed to process URL";
 			oembedData.value = null;
 
-			// Still store the URL even if oEmbed fetch fails
+			// Still store the URL even if processing fails
 			rawData.value = {
 				url: url.value,
 				error: error.value,

@@ -1,11 +1,14 @@
 {
-	"name": "directus-extension-oembed-field",
+	"name": "directus-extension-video-embed-field",
 	"version": "1.0.0",
 	"keywords": [
 		"directus",
 		"directus-extension",
 		"directus-custom-interface",
-		"oembed"
+		"video",
+		"embed",
+		"youtube",
+		"vimeo"
 	],
 	"directus:extension": {
 		"type": "interface",

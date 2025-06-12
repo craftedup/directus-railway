@@ -1,10 +1,10 @@
 import InterfaceComponent from "./interface.vue";
 
 export default {
-	id: "oembed-field",
-	name: "oEmbed",
+	id: "video-embed-field",
+	name: "Video Embed",
 	icon: "video_library",
-	description: "Embed content from external providers like YouTube, Vimeo, etc.",
+	description: "Embed videos from YouTube, Vimeo, and other video platforms",
 	component: InterfaceComponent,
 	options: [
 		{
@@ -16,12 +16,12 @@ export default {
 				interface: "input",
 			},
 			schema: {
-				default_value: "Paste a URL (YouTube, Vimeo, etc.)",
+				default_value: "Paste a video URL (YouTube, Vimeo, etc.)",
 			},
 		},
 		{
 			field: "auto_fetch",
-			name: "Auto-fetch oEmbed Data",
+			name: "Auto-process URLs",
 			type: "boolean",
 			meta: {
 				width: "half",
