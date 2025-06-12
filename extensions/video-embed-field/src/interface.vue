@@ -60,41 +60,15 @@
 			</div>
 
 			<div class="preview-content">
-				<div
-					v-if="oembedData.type === 'video'"
-					class="embed-container"
-				>
+				<div class="embed-container">
 					<iframe
 						:src="getEmbedUrl()"
-						:width="oembedData.width || 560"
-						:height="oembedData.height || 315"
+						:width="oembedData.width || 640"
+						:height="oembedData.height || 360"
 						frameborder="0"
 						allowfullscreen
 					>
 					</iframe>
-				</div>
-				<div
-					v-else-if="oembedData.type === 'photo'"
-					class="photo-container"
-				>
-					<img
-						:src="oembedData.url"
-						:alt="oembedData.title"
-					/>
-				</div>
-				<div
-					v-else
-					class="link-container"
-				>
-					<h5>{{ oembedData.title }}</h5>
-					<p v-if="oembedData.description">{{ oembedData.description }}</p>
-					<a
-						:href="url"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						{{ url }}
-					</a>
 				</div>
 			</div>
 
@@ -117,12 +91,6 @@
 						class="metadata-item"
 					>
 						<strong>Author:</strong> {{ oembedData.author_name }}
-					</div>
-					<div
-						v-if="oembedData.width && oembedData.height"
-						class="metadata-item"
-					>
-						<strong>Dimensions:</strong> {{ oembedData.width }}×{{ oembedData.height }}
 					</div>
 				</div>
 			</div>
@@ -182,42 +150,20 @@
 	const placeholder = computed(() => props.placeholder);
 	const showPreview = computed(() => props.show_preview);
 
-	// oEmbed providers configuration
-	const oembedProviders = [
+	// Video providers configuration
+	const videoProviders = [
 		{
 			provider: "YouTube",
-			endpoint: "https://www.youtube.com/oembed",
 			schemes: ["*://www.youtube.com/watch*", "*://youtu.be/*"],
 		},
 		{
 			provider: "Vimeo",
-			endpoint: "https://vimeo.com/api/oembed.json",
 			schemes: ["*://vimeo.com/*"],
-		},
-		{
-			provider: "Twitter",
-			endpoint: "https://publish.twitter.com/oembed",
-			schemes: ["*://twitter.com/*/status/*", "*://x.com/*/status/*"],
-		},
-		{
-			provider: "Instagram",
-			endpoint: "https://api.instagram.com/oembed",
-			schemes: ["*://www.instagram.com/p/*", "*://instagram.com/p/*"],
-		},
-		{
-			provider: "TikTok",
-			endpoint: "https://www.tiktok.com/oembed",
-			schemes: ["*://www.tiktok.com/*"],
-		},
-		{
-			provider: "Spotify",
-			endpoint: "https://open.spotify.com/oembed",
-			schemes: ["*://open.spotify.com/*"],
 		},
 	];
 
-	function findProvider(inputUrl: string): { provider: string; endpoint: string } | null {
-		for (const provider of oembedProviders) {
+	function findProvider(inputUrl: string): { provider: string } | null {
+		for (const provider of videoProviders) {
 			for (const scheme of provider.schemes) {
 				const regex = new RegExp(scheme.replace(/\*/g, ".*"));
 				if (regex.test(inputUrl)) {
@@ -269,10 +215,8 @@
 				throw new Error("Unsupported video platform. Supported: YouTube, Vimeo");
 			}
 
-			// Use manual parsing for common providers to avoid CORS issues
 			let data;
 
-			// For YouTube, we can extract video ID and create embed data manually
 			if (provider.provider === "YouTube") {
 				const videoId = extractYouTubeId(url.value);
 				if (videoId) {
@@ -283,10 +227,11 @@
 						author_name: "YouTube",
 						provider_name: "YouTube",
 						provider_url: "https://www.youtube.com",
+						video_id: videoId,
 						thumbnail_url: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
-						html: `<iframe width="560" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`,
-						width: 560,
-						height: 315,
+						html: `<iframe width="640" height="360" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`,
+						width: 640,
+						height: 360,
 					};
 				} else {
 					throw new Error("Invalid YouTube URL");
@@ -301,6 +246,7 @@
 						author_name: "Vimeo",
 						provider_name: "Vimeo",
 						provider_url: "https://vimeo.com",
+						video_id: videoId,
 						html: `<iframe src="https://player.vimeo.com/video/${videoId}" width="640" height="360" frameborder="0" allowfullscreen></iframe>`,
 						width: 640,
 						height: 360,
@@ -308,15 +254,6 @@
 				} else {
 					throw new Error("Invalid Vimeo URL");
 				}
-			} else {
-				// For other providers, we'll store basic URL info
-				data = {
-					type: "link",
-					version: "1.0",
-					title: url.value,
-					provider_name: provider.provider,
-					provider_url: url.value,
-				};
 			}
 
 			oembedData.value = data;
@@ -467,33 +404,7 @@
 	.embed-container iframe {
 		max-width: 100%;
 		height: auto;
-	}
-
-	.photo-container img {
-		max-width: 100%;
-		height: auto;
-		border-radius: 4px;
-	}
-
-	.link-container h5 {
-		margin: 0 0 8px 0;
-		color: var(--foreground);
-	}
-
-	.link-container p {
-		margin: 0 0 12px 0;
-		color: var(--foreground-subdued);
-		font-size: 14px;
-	}
-
-	.link-container a {
-		color: var(--primary);
-		text-decoration: none;
-		font-size: 14px;
-	}
-
-	.link-container a:hover {
-		text-decoration: underline;
+		aspect-ratio: 16 / 9;
 	}
 
 	.metadata-section {
