@@ -12,12 +12,12 @@ RUN npm install -g pnpm --force
 USER node
 
 # Installing contributed/custom extensions through npm on Railway
-RUN pnpm install directus-extension-computed-interface && pnpm install directus-extension-upsert && pnpm install directus-extension-wpslug-interface && pnpm install pg
+# RUN pnpm install directus-extension-computed-interface && pnpm install directus-extension-upsert && pnpm install directus-extension-wpslug-interface && pnpm install pg
 
 # Migrations and Directus schema update
 RUN npx directus bootstrap
 # Copying the extensions, templates, migrations, and snapshots to the Directus container
-COPY ./extensions /directus/extensions
+# COPY ./extensions /directus/extensions
 COPY ./templates /directus/templates
 COPY ./migrations /directus/migrations
 COPY ./snapshots /directus/snapshots
