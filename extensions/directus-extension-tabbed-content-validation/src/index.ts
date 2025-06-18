@@ -51,7 +51,6 @@ export default defineHook(({ filter }) => {
         return payload; // Skip validation if DB query fails
       }
     }
-    console.log({currentCount, })
     // Calculate final count: current + creates + updates - deletes
     const finalCount =
       currentCount + create.length - deleteItems.length;
