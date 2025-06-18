@@ -108,13 +108,20 @@
 
 	// Get the current collection type from the parent form
 	const currentCollectionType = computed(() => {
-		const typeFieldValue = values?.[props.typeField];
+		// Try multiple possible locations for the type field
+		const typeFieldValue =
+			values?.[props.typeField] || // Direct access
+			values?.value?.[props.typeField] || // Nested in value object
+			values?.item?.[props.typeField]; // Sometimes nested in item
 
 		// Debug logging
 		console.log("🔍 Dynamic Post Selector Debug:");
 		console.log("- All form values:", values);
 		console.log("- Looking for field:", props.typeField);
-		console.log("- Type field value:", typeFieldValue);
+		console.log("- Direct access:", values?.[props.typeField]);
+		console.log("- In value object:", values?.value?.[props.typeField]);
+		console.log("- In item object:", values?.item?.[props.typeField]);
+		console.log("- Final type field value:", typeFieldValue);
 		console.log("- Available mapping keys:", Object.keys(COLLECTION_MAPPING));
 		console.log(
 			"- Value exists in mapping?",
@@ -208,6 +215,15 @@
 			fetchPosts();
 		},
 		{ immediate: true }
+	);
+
+	// Also watch the values object directly for reactivity
+	watch(
+		() => values,
+		() => {
+			console.log("🔄 Values changed, recalculating collection type...");
+		},
+		{ deep: true }
 	);
 
 	onMounted(() => {
