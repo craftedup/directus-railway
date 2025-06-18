@@ -109,6 +109,18 @@
 	// Get the current collection type from the parent form
 	const currentCollectionType = computed(() => {
 		const typeFieldValue = values?.[props.typeField];
+
+		// Debug logging
+		console.log("🔍 Dynamic Post Selector Debug:");
+		console.log("- All form values:", values);
+		console.log("- Looking for field:", props.typeField);
+		console.log("- Type field value:", typeFieldValue);
+		console.log("- Available mapping keys:", Object.keys(COLLECTION_MAPPING));
+		console.log(
+			"- Value exists in mapping?",
+			typeFieldValue && typeFieldValue in COLLECTION_MAPPING
+		);
+
 		return typeFieldValue && typeFieldValue in COLLECTION_MAPPING
 			? COLLECTION_MAPPING[typeFieldValue as keyof typeof COLLECTION_MAPPING]
 			: null;
