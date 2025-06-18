@@ -1,0 +1,12 @@
+/node_modules
+.env
+/data/database
+Dockerfile
+docker-compose.yml
+directus-config/
+uploads/
+directus-sync.config.js
+directus/
+.DS_Store
+.directus-template-cli/
+docker-compose.yml
