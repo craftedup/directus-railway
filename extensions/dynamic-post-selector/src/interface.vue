@@ -1,7 +1,7 @@
 <template>
 	<div class="dynamic-post-selector">
 		<v-select
-			:model-value="selectedPost"
+			:model-value="props.value"
 			:items="availablePosts"
 			:placeholder="placeholder || 'Select a featured post...'"
 			:loading="loading"
@@ -23,18 +23,23 @@
 				</div>
 			</template>
 
-			<template #item="{ item }">
-				<div class="post-option">
-					<div class="post-title">{{ item.title }}</div>
-					<div class="post-meta">
-						<span v-if="item.date_created">{{ formatDate(item.date_created) }}</span>
-						<span
-							v-if="item.permalink"
-							class="post-permalink"
-							>{{ item.permalink }}</span
-						>
-					</div>
-				</div>
+			<template #item="{ item, props: itemProps }">
+				<v-list-item
+					v-bind="itemProps"
+					class="post-list-item"
+				>
+					<v-list-item-content>
+						<v-list-item-title class="post-title">{{ item.title }}</v-list-item-title>
+						<v-list-item-subtitle class="post-meta">
+							<span v-if="item.date_created">{{ formatDate(item.date_created) }}</span>
+							<span
+								v-if="item.permalink"
+								class="post-permalink"
+								>{{ item.permalink }}</span
+							>
+						</v-list-item-subtitle>
+					</v-list-item-content>
+				</v-list-item>
 			</template>
 		</v-select>
 
@@ -131,12 +136,6 @@
 		return typeFieldValue && typeFieldValue in COLLECTION_MAPPING
 			? COLLECTION_MAPPING[typeFieldValue as keyof typeof COLLECTION_MAPPING]
 			: null;
-	});
-
-	// Get the selected post object for display
-	const selectedPost = computed(() => {
-		if (!props.value) return null;
-		return availablePosts.value.find((post) => post.id === props.value) || null;
 	});
 
 	// Format date for display
@@ -236,8 +235,11 @@
 		width: 100%;
 	}
 
-	.selected-post,
-	.post-option {
+	.selected-post {
+		width: 100%;
+	}
+
+	.post-list-item {
 		width: 100%;
 	}
 
@@ -252,6 +254,7 @@
 		display: flex;
 		gap: 8px;
 		align-items: center;
+		margin-top: 4px;
 	}
 
 	.post-permalink {
