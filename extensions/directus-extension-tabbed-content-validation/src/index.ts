@@ -41,7 +41,7 @@ export default defineHook(({ filter }) => {
         const result = await database("block_tabs")
           .where("tabbed_content", tabbedContentId)
           .count("* as count");
-
+       
         currentCount = parseInt(result[0].count);
       } catch (error) {
         console.error(
@@ -51,10 +51,10 @@ export default defineHook(({ filter }) => {
         return payload; // Skip validation if DB query fails
       }
     }
-
+    console.log({currentCount, })
     // Calculate final count: current + creates + updates - deletes
     const finalCount =
-      currentCount + create.length + update.length - deleteItems.length;
+      currentCount + create.length - deleteItems.length;
 
     // Validate minimum and maximum count
     const MIN_TABS = 2;
