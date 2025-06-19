@@ -33,6 +33,6 @@ export default {
 			},
 		},
 	],
-	types: ["integer"],
+	types: ["integer", "string", "uuid"],
 };
 

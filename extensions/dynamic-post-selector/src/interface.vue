@@ -67,20 +67,20 @@
 	import { useApi } from "@directus/extensions-sdk";
 
 	interface Post {
-		id: number;
+		id: number | string;
 		title: string;
 		date_created?: string;
 		status?: string;
 	}
 
 	interface Props {
-		value?: number | null;
+		value?: number | string | null;
 		placeholder?: string;
 		typeField?: string;
 	}
 
 	interface Emits {
-		(event: "input", value: number | null): void;
+		(event: "input", value: number | string | null): void;
 	}
 
 	const props = withDefaults(defineProps<Props>(), {
@@ -160,7 +160,7 @@
 	};
 
 	// Handle post selection
-	const handleSelection = (postId: number | null) => {
+	const handleSelection = (postId: number | string | null) => {
 		emit("input", postId);
 	};
 
