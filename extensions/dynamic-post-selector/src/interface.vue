@@ -32,11 +32,6 @@
 						<v-list-item-title class="post-title">{{ item.title }}</v-list-item-title>
 						<v-list-item-subtitle class="post-meta">
 							<span v-if="item.date_created">{{ formatDate(item.date_created) }}</span>
-							<span
-								v-if="item.permalink"
-								class="post-permalink"
-								>{{ item.permalink }}</span
-							>
 						</v-list-item-subtitle>
 					</v-list-item-content>
 				</v-list-item>
@@ -74,7 +69,6 @@
 	interface Post {
 		id: number;
 		title: string;
-		permalink?: string;
 		date_created?: string;
 		status?: string;
 	}
@@ -186,7 +180,7 @@
 					filter: {
 						status: { _eq: "published" },
 					},
-					fields: ["id", "title", "permalink", "date_created"],
+					fields: ["id", "title", "date_created"],
 					sort: ["-date_created"],
 					limit: 100,
 				},
