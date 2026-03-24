@@ -35,8 +35,7 @@ module.exports = function (env) {
 		CORS_ALLOWED_HEADERS: env.CORS_ALLOWED_HEADERS || "*",
 		CORS_EXPOSED_HEADERS: env.CORS_EXPOSED_HEADERS || "*",
 		CORS_METHODS: env.CORS_METHODS || "*",
-		CONTENT_SECURITY_POLICY_DIRECTIVES__FRAME_SRC:
-			"https://ptr-next-mocha.vercel.app,https://rentptr.com,https://www.youtube.com,https://www.youtube-nocookie.com,https://player.vimeo.com",
+		CONTENT_SECURITY_POLICY_DIRECTIVES__FRAME_SRC: env.CONTENT_SECURITY_POLICY_DIRECTIVES__FRAME_SRC,
 		CONTENT_SECURITY_POLICY_DIRECTIVES__SCRIPT_SRC:
 			env.CONTENT_SECURITY_POLICY_DIRECTIVES__SCRIPT_SRC ||
 			"array:'self', player.vimeo.com 'unsafe-eval', www.youtube.com 'unsafe-eval', www.youtube.com/iframe_api 'unsafe-eval'",
